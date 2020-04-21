@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Dratewka the Shoemaker</title>
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <style>
+        *{
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+        }
+        body{
+            background: #381430;
+            color: #CC9A64;
+            height: 100%;
+            font-size:; 100%; /*1.853vmin;*/
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        header{
+            position: relative;
+            margin: auto;
+            width: calc(100vw - 30px);
+            max-width: 115vmin;
+            height: 0;
+            color: #CC9A64;
+            text-align: center;
+            padding-top: 16vh;
+            box-sizing: border-box;
+            background-image:url(img/logo.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        footer{
+            font-size: 2vmin;
+            text-shadow: 0.2vmin 0.24vmin 0 rgba(0, 0, 0, 0.63);
+            width: calc(100vw - 30px);
+            max-width: 115vmin;
+            color: #CC9A64;
+            margin: auto;
+            margin-top: 3vh;
+            /*left: 1.5vmin;*/
+            right: calc(45% - 5vmin);
+        }
+        .gTable {
+            margin: auto;
+            width: calc(100vw - 30px);
+            max-width: 115vmin;
+            /*display: inline-block;
+            position: relative;*/
+            background: red;
+            box-sizing: border-box;
+            display: flex;
+        }
+        .gTable:before{
+            content: "";
+            float: left;
+            padding-bottom: 66.60%;
+            box-sizing: border-box;
+        }
+        .gTable:after {
+            content: "";
+            display: table;
+            clear: both;
+            box-sizing: border-box;
+        }
+        .gWindow{
+            width: 100%;
+            background: #101010;
+            background-image: url(img/background.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+            box-sizing: border-box;
+            border: 1.5vmin solid #989898;
+        }
+        .fsButton{
+            max-width: 40px;
+            max-height: 40px;
+            width: 5vmin;
+            height: 5vmin;
+            position: absolute;
+            top: 4vmin;
+            right: 0;
+            z-index: 600;
+            font-size: 1.8vmin;
+            background: rgba(0, 0, 0, 0.63);
+            text-shadow: 0.2vmin 0.24vmin 0 rgba(0, 0, 0, 0.63);
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+        }
+        .fsText{
+            margin: auto;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+            document.body.innerHTML = "<header><div class='fsButton'><span class='fsText'>[]</span></div></header><div class='gTable'><div class='gWindow' >JEST SUPER</div></div><nav></nav><footer><span>Niechaj 2017</span></footer>"
+        });
+    </script>
+</head>
+<body>
+</body>
+</html>

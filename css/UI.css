@@ -1,0 +1,109 @@
+:root{
+    --main-width: calc(95vw - 10px);
+    --main-max-width: 100vmin;
+}
+
+
+        *{
+            font-family: 'Press Start 2P', cursive;
+            margin: 0;
+            padding: 0;
+        }
+        *, *:before, *:after {
+        -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+        }
+        html, body { width:100%; height:100%; }
+        canvas { display:block; }
+        body{
+            background: linear-gradient(#381430, #521E46);/*#381430;*/
+            color: #CC9A64;
+            height: 100%;
+            font-size:; 100%; /*1.853vmin;*/
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            border: 1.5vmin solid rgba(255,255,255,0.1)
+        }
+        header{
+            position: relative;
+            margin-bottom: auto;
+            margin-top: 1vh;
+            width: var(--main-width);
+            max-width: var(--main-max-width);
+            height: 16vh;
+            max-height: 35vw;
+            color: #CC9A64;
+            text-align: center;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            background-image:url(../img/logo.png);
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        footer{
+            font-size: 2vmin;
+            text-shadow: 0.2vmin 0.24vmin 0 rgba(0, 0, 0, 0.63);
+            width: var(--main-width);
+            max-width: var(--main-max-width);
+            color: #CC9A64;
+            margin-bottom: 2vh;
+            margin-top: auto;
+            /*left: 1.5vmin;*/
+            right: calc(45% - 5vmin);
+            text-indent: 1vmin;
+        }
+        .gTable {
+            margin: auto;
+            width: var(--main-width);
+            max-width: var(--main-max-width);
+            /*display: inline-block;
+            position: relative;*/
+            background:; red;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            display: flex;
+            box-shadow: 0.6vmin 0.8vmin rgba(56, 20, 48, 0.7);
+        }
+        .gTable:before{
+            content: "";
+            float: left;
+            padding-bottom: 66.465%;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+        .gTable:after {
+            content: "";
+            display: table;
+            clear: both;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+        .gWindow{
+            width: 100%;
+            background: #101010;
+            border: 1.5vmin solid #989898;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+        .fsButton{
+            max-width: 40px;
+            max-height: 40px;
+            width: 5vmin;
+            height: 5vmin;
+            position: absolute;
+            top: 4vmin;
+            right: 1vmin;
+            z-index: 600;
+            font-size: 1.8vmin;
+            background: rgba(0, 0, 0, 0.63);
+            text-shadow: 0.2vmin 0.24vmin 0 rgba(0, 0, 0, 0.63);
+            cursor: pointer;
+            border-radius: 10px;
+            display: flex;
+        }
+        .fsText{
+            margin: auto;
+        }
