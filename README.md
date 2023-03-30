@@ -4,4 +4,4 @@ Punktacja polegała na zasadzie HIGH SCORE
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/0iXV1UWjSrs/0.jpg)](https://www.youtube.com/watch?v=0iXV1UWjSrs)
 
-Try game here: https://derstilon.github.io/chickenFromAtari/chicken.html
+Try game [here](https://derstilon.github.io/chickenFromAtari/index.html)
