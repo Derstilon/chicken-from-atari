@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Atari - Chicken</title>
+        <link
+            href="https://fonts.googleapis.com/css?family=Press+Start+2P"
+            rel="stylesheet"
+        />
+        <link rel="Stylesheet" type="text/css" href="css/UI.css" />
+        <script type="text/javascript" src="js/animation.js"></script>
+        <script type="text/javascript" src="js/controls.js"></script>
+        <script type="text/javascript" src="js/score.js"></script>
+        <meta charset="utf-8" />
+        <style>
+            .gWindow{
+                background-image:; url(img/background.png);
+                background-size: cover;
+                background-repeat: no-repeat;
+                position: relative;
+                overflow: hidden;
+                /*display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;*/
+            }
+            canvas{
+                position: absolute;
+                bottom: 0;
+                left: 0;
+            }
+        </style>
+        <script>
+            var gWidth = 0,
+                gHeight = 0,
+                trails = [],
+                eggs = [],
+                fox,
+                player,
+                floor,
+                lastEggsCaught = 0,
+                eggsCaught = 0,
+                lastScore = 0,
+                score = 0,
+                lastLevel = 0,
+                level = 0,
+                lastLives = 3,
+                lives = 3,
+                liveImage,
+                logoImage,
+                bonusImage,
+                guardImages = [],
+                loadedImages = 0,
+                allLoaded = 20,
+                controls,
+                gameStatus = 0,
+                imgTab = [],
+                lastUpdate = Date.now(),
+                trailUpdate = 0,
+                trailCzekaj = 32, //32 || 0
+                speed = 15; //(70; 15)
+
+            function _Trail() {
+                this.id = arguments[0];
+                this.dlugosc = arguments[5];
+                this.roznica = arguments[6];
+                this.wysokosc = 8;
+                this.ustawienie =
+                    ((arguments[3] + 1) % 2) * (arguments[4] + 8) * 8;
+                this.pozycja = arguments[1];
+                this.grafika = arguments[2];
+                this.kierunek = arguments[3];
+                this.dystans = arguments[4] + 8;
+                this.zmiana = 0;
+                this.overflow = arguments[7];
+            }
+            function _Player() {
+                this.pozycja = 132;
+                this.wysokosc = 188;
+                this.skok = 0;
+                this.step = 1;
+                this.dlugosc = 48 - 2; //arguments[0][0].naturalWidth/9 + arguments[0][1].naturalWidth/9 - 12;
+                this.grafiki = arguments[0];
+            }
+            function _Floor() {
+                this.wysokosc = 200;
+                this.grafika = arguments[0];
+            }
+            function _Fox() {
+                this.pozycja = 32 * 2;
+                this.wysokosc = 32;
+                this.reszta = 0;
+                this.step = 0;
+                this.dlugosc = 16; //arguments[0][0].naturalWidth/9 + arguments[0][1].naturalWidth/9 - 12;
+                this.grafiki = arguments[0];
+                this.meta = 32 * 3;
+                this.progress = -1;
+                this.czas = 0;
+                this.czekaj = 32; //48 || 6
+                this.jajko = true;
+            }
+            function _Egg() {
+                this.pozycja = arguments[0];
+                this.wysokosc = arguments[1];
+                this.dlugosc = 6;
+                this.status = arguments[2];
+                this.grafiki = arguments[3];
+                this.ruch = false;
+                this.czekaj = 6;
+                this.update = 0;
+            }
+            function tick() {
+                var now = Date.now();
+                var dt = now - lastUpdate;
+                lastUpdate = now;
+                return dt;
+            }
+            function prepareMenu(mode) {
+                var cS = document.getElementById("cScore"),
+                    ctxS = cS.getContext("2d");
+                switch (mode) {
+                    case 1:
+                        ctxS.clearRect(0, 0, cS.width, cS.height);
+                        drawText("EGGS CAUGHT:", 2, 7, "#bf905e");
+                        drawText("L:", 258, 7, "#bf905e");
+                        drawText("SCORE:", 2, 15, "#bf905e");
+                        ctxS.drawImage(
+                            floor.grafika,
+                            0,
+                            (floor.wysokosc * cS.height) / 210,
+                            cS.width,
+                            ((floor.grafika.naturalHeight / 9) * cS.height) /
+                                210,
+                        );
+                        lastEggsCaught = 0;
+                        eggsCaught = 0;
+                        lastScore = 3480; // highscore
+                        score = 3480; //highscore
+                        lastLevel = 0;
+                        level = 0;
+                        lastLives = 3;
+                        lives = 3;
+                        updateScore("eggs");
+                        updateScore("level");
+                        updateScore("score");
+                        updateScore("live");
+                        ctxS.drawImage(
+                            logoImage,
+                            (120 * cS.width) / 320,
+                            (76 * cS.height) / 210,
+                            ((logoImage.naturalWidth / 9) * cS.width) / 320,
+                            ((logoImage.naturalHeight / 9) * cS.height) / 210,
+                        );
+
+                        var fontSize = cS.width / 49;
+                        ctxS.font = String(fontSize) + 'px "Press Start 2P"';
+                        ctxS.textAlign = "center";
+                        ctxS.textBaseline = "top";
+                        ctxS.fillStyle = "#989898";
+                        ctxS.fillText(
+                            "BY JAKUB NIECHAJ 3IA",
+                            cS.width / 2,
+                            (117 * cS.height) / 210,
+                        );
+                        ctxS.fillText(
+                            "PROJEKT SZKOLNY 2017",
+                            cS.width / 2,
+                            (133 * cS.height) / 210,
+                        );
+                        ctxS.fillText(
+                            "HIGH SCORE: 3480",
+                            cS.width / 2,
+                            (173 * cS.height) / 210,
+                        );
+                        break;
+                    case 2:
+                        var cT = document.getElementById("cTrails"),
+                            ctxT = cT.getContext("2d"),
+                            cP = document.getElementById("cPlayer"),
+                            ctxP = cP.getContext("2d");
+                        ctxT.clearRect(0, 0, cS.width, (100 * cS.height) / 210);
+                        ctxP.clearRect(0, 0, cS.width, (100 * cS.height) / 210);
+                        ctxS.clearRect(0, 0, cS.width, cS.height);
+                        drawText("EGGS CAUGHT:", 2, 7, "#bf905e");
+                        drawText("L:", 258, 7, "#bf905e");
+                        drawText("SCORE:", 2, 15, "#bf905e");
+
+                        var fontSize = (cS.width * 2) / 49;
+                        ctxP.font = String(fontSize) + 'px "Press Start 2P"';
+                        ctxP.textAlign = "center";
+                        ctxP.textBaseline = "top";
+                        ctxP.fillStyle = "#CC9A64";
+                        ctxP.fillText(
+                            "PLAYER 1",
+                            cS.width / 2,
+                            (100 * cS.height) / 210,
+                        );
+                        updateScore("eggs");
+                        updateScore("level");
+                        updateScore("score");
+                        updateScore("live");
+                        break;
+                    case 3:
+                        //alert("start")
+                        ctxS.clearRect(0, 0, cS.width, cS.height);
+                        drawText("EGGS CAUGHT:", 2, 7, "#bf905e");
+                        drawText("L:", 258, 7, "#bf905e");
+                        drawText("SCORE:", 2, 15, "#bf905e");
+                        ctxS.drawImage(
+                            floor.grafika,
+                            0,
+                            (floor.wysokosc * cS.height) / 210,
+                            cS.width,
+                            ((floor.grafika.naturalHeight / 9) * cS.height) /
+                                210,
+                        );
+                        updateScore("eggs");
+                        updateScore("level");
+                        updateScore("score");
+                        updateScore("live");
+                        break;
+                    case 4:
+                        var cT = document.getElementById("cTrails"),
+                            ctxT = cT.getContext("2d"),
+                            cP = document.getElementById("cPlayer"),
+                            ctxP = cP.getContext("2d");
+                        ctxP.clearRect(0, 0, cP.width, cP.height);
+                        ctxS.clearRect(0, 0, cS.width, cS.height);
+                        drawText("EGGS CAUGHT:", 2, 7, "#bf905e");
+                        drawText("L:", 258, 7, "#bf905e");
+                        drawText("SCORE:", 2, 15, "#bf905e");
+
+                        var fontSize = (cS.width * 2) / 49;
+                        ctxP.font = String(fontSize) + 'px "Press Start 2P"';
+                        ctxP.textAlign = "center";
+                        ctxP.textBaseline = "top";
+                        ctxP.fillStyle = "#521E46";
+                        if (level.length > 1) {
+                            var lv = String(level);
+                        } else {
+                            var lv = "0" + String(level);
+                        }
+                        ctxP.fillText(
+                            "LEVEL: " + lv,
+                            cS.width / 2,
+                            (100 * cS.height) / 210,
+                        );
+                        updateScore("eggs");
+                        updateScore("level");
+                        updateScore("score");
+                        updateScore("live");
+                        break;
+                    case 5:
+                        break;
+                }
+            }
+            function gameCanvas() {
+                var imageObjs = [],
+                    imageObj,
+                    imageFloorObj,
+                    imagePlayerObjs = [],
+                    imageFoxObjs = [],
+                    imageEggObjs = [];
+                imageObj = new Image();
+                imageObj.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                imageObj.src = "img/cart.png";
+                imagePlayerObjs.push(imageObj);
+                for (var i = 0; i < 4; i++) {
+                    imageObj = new Image();
+                    imageObj.onload = function () {
+                        console.log(loadedImages, "ładujemy");
+                        loadedImages++;
+                    };
+                    imageObj.src = "img/chick" + String(i) + ".png";
+                    imagePlayerObjs.push(imageObj);
+                }
+                player = new _Player(imagePlayerObjs);
+                for (var i = 0; i < 5; i++) {
+                    imageObj = new Image();
+                    imageObj.onload = function () {
+                        console.log(loadedImages, "ładujemy");
+                        loadedImages++;
+                    };
+                    imageObj.src = "img/fox" + String(i) + ".png";
+                    imageFoxObjs.push(imageObj);
+                }
+                fox = new _Fox(imageFoxObjs);
+                imageObj = new Image();
+                imageObj.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                imageObj.src = "img/egg.png";
+                imageEggObjs.push(imageObj);
+                imageObj = new Image();
+                imageObj.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                imageObj.src = "img/nestling.png";
+                imageEggObjs.push(imageObj);
+                eggs.push(
+                    new _Egg(1, 30, 0, imageEggObjs),
+                    new _Egg(9, 30, 0, imageEggObjs),
+                    new _Egg(17, 30, 0, imageEggObjs),
+                    //new _Egg(48, 30, 1, imageEggObjs)
+                );
+                for (var i = 1; i < 4; i++) {
+                    imageObj = new Image();
+                    imageObj.onload = function () {
+                        console.log(loadedImages, "ładujemy");
+                        loadedImages++;
+                    };
+                    imageObj.src = "img/trail" + String(i) + ".png";
+                    imageObjs.push(imageObj);
+                }
+                trails.push(
+                    new _Trail(0, 38, imageObjs[0], 0, 14, 24, -7, 0),
+                    new _Trail(1, 49, imageObjs[1], 1, 108, 40, -31, 0), //96
+                    new _Trail(2, 60, imageObjs[2], 0, 46, 32, -31, 3) /*,
+                new _Trail(0, 71, imageObjs[0], 0, 14),
+                new _Trail(4, 82, imageObjs[2], 1, 42),
+                new _Trail(5, 93, imageObjs[0], 0, 18),
+                new _Trail(6, 104, imageObjs[1], 1, 90)*/,
+                );
+                imageObj = new Image();
+                imageObj.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                imageObj.src = "img/floor.png";
+                floor = new _Floor(imageObj);
+                gameStatus++;
+                liveImage = new Image();
+                liveImage.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                liveImage.src = "img/live.png";
+                logoImage = new Image();
+                logoImage.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                logoImage.src = "img/name.png";
+                bonusImage = new Image();
+                bonusImage.onload = function () {
+                    console.log(loadedImages, "ładujemy");
+                    loadedImages++;
+                };
+                bonusImage.src = "img/bonus.png";
+                for (var i = 0; i < 2; i++) {
+                    imageObj = new Image();
+                    imageObj.onload = function () {
+                        console.log(loadedImages, "ładujemy");
+                        loadedImages++;
+                    };
+                    imageObj.src = "img/guard" + String(i) + ".png";
+                    guardImages.push(imageObj);
+                }
+            }
+            function resize() {
+                var that = document.getElementsByClassName("gTable")[0],
+                    c = document.getElementsByClassName("canvas");
+                gWidth = that.clientWidth;
+                gHeight = that.clientHeight;
+                var frame = Math.min(
+                    (window.innerHeight * 3) / 100,
+                    (window.innerWidth * 3) / 100,
+                );
+                document.getElementsByClassName("gWindow")[0].style.maxHeight =
+                    that.clientHeight + "px";
+                for (var i in c) {
+                    c[i].width = that.clientWidth + 2 - frame;
+                    c[i].height =
+                        ((that.clientWidth + 1) * 66.465) / 100 - frame;
+                }
+            }
+            function init() {
+                gameCanvas();
+                makeControls();
+                window.addEventListener("resize", function () {
+                    //setTimeout(function(){
+                    resize();
+                    animate();
+                    prepareMenu(gameStatus);
+                    //}, 2)
+                });
+                setInterval(function () {
+                    var delta = tick();
+                    if (loadedImages > allLoaded) {
+                        movePlayer(delta);
+                        switch (gameStatus) {
+                            case 1:
+                                animate(delta);
+                                moveTrails(delta);
+                                break;
+                            case 2:
+                                break;
+                            case 3:
+                                movePlayer(delta);
+                                animate(delta);
+                                moveTrails(delta);
+                                moveFox(delta);
+                                break;
+                            case 4:
+                                break;
+                            case 5:
+                                movePlayer(delta);
+                                animate(delta);
+                                break;
+                        }
+                        prepareMenu(gameStatus);
+                    }
+                }, 8); //8)
+                /*setInterval(function(){
+                if(loadedImages > allLoaded ){
+                    
+                }
+            }, speed)
+            setInterval(function(){
+                if(loadedImages > allLoaded ){
+                    
+                }
+            }, speed/2)
+            setTimeout(function(){
+            }, 10)*/
+            }
+            document.addEventListener("DOMContentLoaded", function (event) {
+                var gameWindow = document.getElementsByClassName("gWindow")[0];
+                gameWindow.innerHTML =
+                    '<canvas class="canvas" id="cTrails" width="500px" height="50px"></canvas>' +
+                    '<canvas class="canvas" id="cPlayer" width="500px" height="50px"></canvas>' +
+                    '<canvas class="canvas" id="cScore" width="500px" height="50px"></canvas>';
+                resize();
+                init();
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <div class="fsButton">
+                <span class="fsText">[]</span>
+            </div>
+        </header>
+        <div class="gTable">
+            <div class="gWindow"><span>Enable JavaScript...</span><br /></div>
+        </div>
+        <nav></nav>
+        <footer>
+            <span>Niechaj 2017</span>
+        </footer>
+    </body>
+</html>
